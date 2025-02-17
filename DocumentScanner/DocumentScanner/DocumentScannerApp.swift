@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import SwiftData
+
 
 @main
-struct DocumentScannerApp: App {
+struct DocumentScannerApp: App { 
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .modelContainer(for: Document.self)
         }
     }
 }
