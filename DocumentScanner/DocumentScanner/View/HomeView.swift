@@ -29,13 +29,23 @@ struct HomeView: View {
                 CreateButton()
             }
         }
+        .fullScreenCover(isPresented: $showScannerView) {
+            ScannerView { error in
+                
+            } didCancel: {
+                
+            } didFinish: { scan in
+                
+            }
+            .ignoresSafeArea()
+        }
     }
     
     
     @ViewBuilder
     private func CreateButton() -> some View {
         Button {
-            
+            showScannerView.toggle()
         } label: {
             HStack(spacing: 0) {
                 Image(systemName: "document.viewfinder.fill")
