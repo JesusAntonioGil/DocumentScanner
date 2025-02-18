@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var isLoading: Bool = false
     @Query(sort: [.init(\Document.createdAt, order: .reverse)] ,animation: .snappy(duration: 0.25, extraBounce: 0)) private var documents: [Document]
     // Enviroment Values
+    @Namespace private var animationID
     @Environment(\.modelContext) private var context
     
     
@@ -27,7 +28,13 @@ struct HomeView: View {
             ScrollView(.vertical) {
                 LazyVGrid(columns: Array(repeating: GridItem(spacing: 10), count: 2), spacing: 15) {
                     ForEach(documents) { document in
-                        
+                        NavigationLink {
+                            DocumentDetailView(document: document)
+                                .navigationTransition(.zoom(sourceID: document.uniqueViewID, in: animationID))
+                        } label: {
+                            DocumentCardView(document: document, animationID: animationID)
+                                .foregroundStyle(.primary)
+                        }
                     }
                 }
                 .padding(15)
@@ -112,6 +119,7 @@ struct HomeView: View {
                 // Modify the compression value as per your needs!
                 guard let pageData = pageImage.jpegData(compressionQuality: 0.65) else { return }
                 let documentPage = DocumentPage(document: document, pageIndex: pageIndex, pageData: pageData)
+                pages.append(documentPage)
             }
             
             document.pages = pages
