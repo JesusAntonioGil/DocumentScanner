@@ -7,10 +7,14 @@
 
 import SwiftUI
 import SwiftData
+import VisionKit
 
 
 struct HomeView: View {
     @State private var showScannerView: Bool = false
+    @State private var scanDocument: VNDocumentCameraScan?
+    @State private var documentName: String = "New Document"
+    @State private var askDocumentName: Bool = false
     @Query(sort: [.init(\Document.createdAt, order: .reverse)] ,animation: .snappy(duration: 0.25, extraBounce: 0)) private var documents: [Document]
     
     
@@ -33,15 +37,26 @@ struct HomeView: View {
             ScannerView { error in
                 
             } didCancel: {
-                
+                showScannerView = false
             } didFinish: { scan in
-                
+                scanDocument = scan
+                showScannerView = false
+                askDocumentName = true
             }
             .ignoresSafeArea()
+        }
+        .alert("Document Name", isPresented: $askDocumentName) {
+            TextField("New Document", text: $documentName)
+            
+            Button("Save") {
+                createDocument()
+            }
+            .disabled(documentName.isEmpty)
         }
     }
     
     
+    // Custom Scan Document Button
     @ViewBuilder
     private func CreateButton() -> some View {
         Button {
@@ -75,6 +90,11 @@ struct HomeView: View {
                 }
                 .ignoresSafeArea()
         }
+    }
+    
+    // Helper Methods
+    private func createDocument() {
+        
     }
 }
 
