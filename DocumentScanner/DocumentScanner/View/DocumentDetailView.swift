@@ -181,7 +181,7 @@ struct DocumentDetailView: View {
             pdfURL.append(path: fileName)
             
             if pdfDocument.write(to: pdfURL) {
-                await MainActor.run {
+                await MainActor.run { [pdfURL] in
                     fileURL = pdfURL
                     showFileMover = true
                     showFileMover = true
