@@ -11,11 +11,15 @@ import VisionKit
 
 
 struct HomeView: View {
+    // View Properties
     @State private var showScannerView: Bool = false
     @State private var scanDocument: VNDocumentCameraScan?
     @State private var documentName: String = "New Document"
     @State private var askDocumentName: Bool = false
+    @State private var isLoading: Bool = false
     @Query(sort: [.init(\Document.createdAt, order: .reverse)] ,animation: .snappy(duration: 0.25, extraBounce: 0)) private var documents: [Document]
+    // Enviroment Values
+    @Environment(\.modelContext) private var context
     
     
     var body: some View {
@@ -53,6 +57,7 @@ struct HomeView: View {
             }
             .disabled(documentName.isEmpty)
         }
+        .loadingScreen(status: $isLoading)
     }
     
     
@@ -94,7 +99,32 @@ struct HomeView: View {
     
     // Helper Methods
     private func createDocument() {
+        guard let scanDocument else { return }
+        isLoading = true
         
+        Task.detached(priority: .high) { [documentName] in
+            let document = Document(name: documentName)
+            var pages: [DocumentPage] = []
+            
+            for pageIndex in 0..<scanDocument.pageCount {
+                let pageImage = scanDocument.imageOfPage(at: pageIndex)
+                // Converting Image into Data
+                // Modify the compression value as per your needs!
+                guard let pageData = pageImage.jpegData(compressionQuality: 0.65) else { return }
+                let documentPage = DocumentPage(document: document, pageIndex: pageIndex, pageData: pageData)
+            }
+            
+            document.pages = pages
+            
+            // Saving data on main thread
+            await MainActor.run {
+                context.insert(document)
+                try? context.save()
+                self.scanDocument = nil
+                isLoading = false
+                self.documentName = "New Document"
+            }
+        }
     }
 }
 
